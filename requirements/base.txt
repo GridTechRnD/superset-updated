@@ -431,3 +431,11 @@ zipp==3.21.0
     # via importlib-metadata
 zstandard==0.23.0
     # via flask-compress
+    
+######################
+#    Hexing Added    #
+######################
+
+# Needed for Dremio
+# sqlalchemy_dremio>=3.0.4
+git+https://github.com/narendrans/sqlalchemy_dremio.git
