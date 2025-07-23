@@ -49,6 +49,8 @@ services:
     image: postgres:15
     container_name: superset_db
     restart: unless-stopped
+    ports:
+      - 5432:5432
     volumes:
       - db_home:/var/lib/postgresql/data
       - ./docker/docker-entrypoint-initdb.d:/docker-entrypoint-initdb.d
@@ -59,8 +61,7 @@ services:
         required: true
       - path: docker/.env-local # optional override
         required: false
-    build:
-      <<: *common-build
+    image: ghcr.io/gridtechrnd/build-superset:latest
     container_name: superset_app
     command: ["/app/docker/docker-bootstrap.sh", "app-gunicorn"]
     user: "root"
@@ -98,8 +99,7 @@ services:
       SUPERSET_LOG_LEVEL: "${SUPERSET_LOG_LEVEL:-info}"
 
   superset-worker:
-    build:
-      <<: *common-build
+    image: ghcr.io/gridtechrnd/build-superset-worker:latest
     container_name: superset_worker
     command: ["/app/docker/docker-bootstrap.sh", "worker"]
     env_file:
@@ -123,8 +123,7 @@ services:
       SUPERSET_LOG_LEVEL: "${SUPERSET_LOG_LEVEL:-info}"
 
   superset-worker-beat:
-    build:
-      <<: *common-build
+    image: ghcr.io/gridtechrnd/build-superset-worker-beat:latest
     container_name: superset_worker_beat
     command: ["/app/docker/docker-bootstrap.sh", "beat"]
     env_file:
