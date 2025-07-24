@@ -28,7 +28,7 @@ x-superset-volumes:
 
 x-common-build: &common-build
   context: .
-  target: dev
+  target: lean
   cache_from:
     - apache/superset-cache:3.10-slim-bookworm
 
@@ -49,8 +49,6 @@ services:
     image: postgres:15
     container_name: superset_db
     restart: unless-stopped
-    ports:
-      - 5432:5432
     volumes:
       - db_home:/var/lib/postgresql/data
       - ./docker/docker-entrypoint-initdb.d:/docker-entrypoint-initdb.d
@@ -61,45 +59,19 @@ services:
         required: true
       - path: docker/.env-local # optional override
         required: false
-    image: ghcr.io/gridtechrnd/build-superset:latest
+    image: ghcr.io/gridtechrnd/superset-updated:latest
     container_name: superset_app
     command: ["/app/docker/docker-bootstrap.sh", "app-gunicorn"]
     user: "root"
     restart: unless-stopped
     ports:
       - 8088:8088
-    depends_on:
-      superset-init:
-        condition: service_completed_successfully
     volumes: *superset-volumes
     environment:
-      SUPERSET_LOG_LEVEL: "${SUPERSET_LOG_LEVEL:-info}"
-
-  superset-init:
-    container_name: superset_init
-    build:
-      <<: *common-build
-    command: ["/app/docker/docker-init.sh"]
-    env_file:
-      - path: docker/.env # default
-        required: true
-      - path: docker/.env-local # optional override
-        required: false
-    depends_on:
-      db:
-        condition: service_started
-      redis:
-        condition: service_started
-    user: "root"
-    volumes: *superset-volumes
-    healthcheck:
-      disable: true
-    environment:
-      SUPERSET_LOAD_EXAMPLES: "${SUPERSET_LOAD_EXAMPLES:-yes}"
       SUPERSET_LOG_LEVEL: "${SUPERSET_LOG_LEVEL:-info}"
 
   superset-worker:
-    image: ghcr.io/gridtechrnd/build-superset-worker:latest
+    image: ghcr.io/gridtechrnd/superset-updated:latest
     container_name: superset_worker
     command: ["/app/docker/docker-bootstrap.sh", "worker"]
     env_file:
@@ -108,9 +80,6 @@ services:
       - path: docker/.env-local # optional override
         required: false
     restart: unless-stopped
-    depends_on:
-      superset-init:
-        condition: service_completed_successfully
     user: "root"
     volumes: *superset-volumes
     healthcheck:
@@ -123,7 +92,7 @@ services:
       SUPERSET_LOG_LEVEL: "${SUPERSET_LOG_LEVEL:-info}"
 
   superset-worker-beat:
-    image: ghcr.io/gridtechrnd/build-superset-worker-beat:latest
+    image: ghcr.io/gridtechrnd/superset-updated:latest
     container_name: superset_worker_beat
     command: ["/app/docker/docker-bootstrap.sh", "beat"]
     env_file:
@@ -132,9 +101,6 @@ services:
       - path: docker/.env-local # optional override
         required: false
     restart: unless-stopped
-    depends_on:
-      superset-init:
-        condition: service_completed_successfully
     user: "root"
     volumes: *superset-volumes
     healthcheck:
@@ -149,3 +115,4 @@ volumes:
     external: false
   redis:
     external: false
+ 

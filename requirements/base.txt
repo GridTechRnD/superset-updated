@@ -437,5 +437,4 @@ zstandard==0.23.0
 ######################
 
 # Needed for Dremio
-# sqlalchemy_dremio>=3.0.4
-git+https://github.com/narendrans/sqlalchemy_dremio.git
+sqlalchemy_dremio==3.0.4

@@ -910,3 +910,10 @@ zstandard==0.23.0
     # via
     #   -c requirements/base.txt
     #   flask-compress
+    
+######################
+#    Hexing Added    #
+######################
+
+# Needed for Dremio
+sqlalchemy_dremio==3.0.4
