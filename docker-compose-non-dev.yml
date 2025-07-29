@@ -18,13 +18,13 @@
 # -----------------------------------------------------------------------
 # We don't support docker compose for production environments.
 # If you choose to use this type of deployment make sure to
-# create you own docker environment file (docker/.env) with your own
+# create you own docker environment file (.env) with your own
 # unique random secure passwords and SECRET_KEY.
 # -----------------------------------------------------------------------
 x-superset-volumes:
   &superset-volumes # /app/pythonpath_docker will be appended to the PYTHONPATH in the final container
-  - ./docker:/app/docker
-  - superset_home:/app/superset_home
+  - ./superset_config.py:/app/superset_config.py
+  - superset_home-prod:/app/superset_home
 
 x-common-build: &common-build
   context: .
@@ -35,32 +35,32 @@ x-common-build: &common-build
 services:
   redis:
     image: redis:7
-    container_name: superset_cache
+    container_name: superset_cache-prod
     restart: unless-stopped
     volumes:
-      - redis:/data
+      - redis-prod:/data
 
   db:
     env_file:
-      - path: docker/.env # default
+      - path: .env # default
         required: true
-      - path: docker/.env-local # optional override
+      - path: .env-local # optional override
         required: false
     image: postgres:15
-    container_name: superset_db
+    container_name: superset_db-prod
     restart: unless-stopped
     volumes:
-      - db_home:/var/lib/postgresql/data
+      - db_home-prod:/var/lib/postgresql/data
       - ./docker/docker-entrypoint-initdb.d:/docker-entrypoint-initdb.d
 
-  superset:
+  superset-prod:
     env_file:
-      - path: docker/.env # default
+      - path: .env # default
         required: true
-      - path: docker/.env-local # optional override
+      - path: .env-local # optional override
         required: false
     image: ghcr.io/gridtechrnd/superset-updated:latest
-    container_name: superset_app
+    container_name: superset_app-prod
     command: ["/app/docker/docker-bootstrap.sh", "app-gunicorn"]
     user: "root"
     restart: unless-stopped
@@ -70,14 +70,14 @@ services:
     environment:
       SUPERSET_LOG_LEVEL: "${SUPERSET_LOG_LEVEL:-info}"
 
-  superset-worker:
+  superset-worker-prod:
     image: ghcr.io/gridtechrnd/superset-updated:latest
-    container_name: superset_worker
+    container_name: superset_worker-prod
     command: ["/app/docker/docker-bootstrap.sh", "worker"]
     env_file:
-      - path: docker/.env # default
+      - path: .env # default
         required: true
-      - path: docker/.env-local # optional override
+      - path: .env-local # optional override
         required: false
     restart: unless-stopped
     user: "root"
@@ -91,14 +91,14 @@ services:
     environment:
       SUPERSET_LOG_LEVEL: "${SUPERSET_LOG_LEVEL:-info}"
 
-  superset-worker-beat:
+  superset-worker-beat-prod:
     image: ghcr.io/gridtechrnd/superset-updated:latest
-    container_name: superset_worker_beat
+    container_name: superset_worker_beat-prod
     command: ["/app/docker/docker-bootstrap.sh", "beat"]
     env_file:
-      - path: docker/.env # default
+      - path: .env # default
         required: true
-      - path: docker/.env-local # optional override
+      - path: .env-local # optional override
         required: false
     restart: unless-stopped
     user: "root"
@@ -109,10 +109,10 @@ services:
       SUPERSET_LOG_LEVEL: "${SUPERSET_LOG_LEVEL:-info}"
 
 volumes:
-  superset_home:
+  superset_home-prod:
     external: false
-  db_home:
+  db_home-prod:
     external: false
-  redis:
+  redis-prod:
     external: false
  
