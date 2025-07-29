@@ -1,0 +1,108 @@
+cmdstanpy==1.1.0
+    # via prophet
+contourpy==1.0.7
+    # via matplotlib
+cycler==0.12.1
+    # via matplotlib
+db-dtypes==1.3.1
+    # via pandas-gbq
+flask-cors==4.0.0
+    # via apache-superset
+flask-testing==0.8.1
+    # via flask
+fonttools==4.55.0
+    # via matplotlib
+freezegun==1.5.1
+    # via apache-superset
+future==1.0.0
+    # via pyhive
+gevent==24.2.1
+    # via apache-superset
+jsonschema-spec==0.1.6
+    # via openapi-spec-validator
+kiwisolver==1.4.7
+    # via matplotlib
+lazy-object-proxy==1.10.0
+    # via openapi-spec-validator
+matplotlib==3.9.0
+    # via prophet
+mysqlclient==2.2.6
+    # via apache-superset
+oauthlib==3.2.2
+    # via requests-oauthlib
+openapi-schema-validator==0.4.4
+    # via openapi-spec-validator
+openapi-spec-validator==0.5.6
+    # via apache-superset
+pandas-gbq==0.19.1
+    # via apache-superset
+parameterized==0.9.0
+    # via apache-superset
+pathable==0.4.3
+    # via jsonschema-spec
+pillow==10.3.0
+    # via
+    #   apache-superset
+    #   matplotlib
+pluggy==1.5.0
+    # via pytest
+progress==1.6
+    # via apache-superset
+prophet==1.1.5
+    # via apache-superset
+proto-plus==1.25.0
+    # via
+    #   google-api-core
+    #   google-cloud-bigquery-storage
+protobuf==4.25.5
+    # via
+    #   google-api-core
+    #   google-cloud-bigquery-storage
+    #   googleapis-common-protos
+    #   grpcio-status
+    #   proto-plus
+psutil==6.1.0
+    # via apache-superset
+psycopg2-binary==2.9.6
+    # via apache-superset
+pydata-google-auth==1.9.0
+    # via pandas-gbq
+pydruid==0.6.9
+    # via apache-superset
+pyhive==0.7.0
+    # via apache-superset
+pyinstrument==4.4.0
+    # via apache-superset
+python-ldap==3.4.4
+    # via apache-superset
+requests-oauthlib==2.0.0
+    # via google-auth-oauthlib
+rfc3339-validator==0.1.4
+    # via openapi-schema-validator
+ruff==0.8.0
+    # via apache-superset
+setuptools==75.6.0
+    # via
+    #   nodeenv
+    #   pandas-gbq
+    #   pydata-google-auth
+    #   zope-event
+    #   zope-interface
+sqlalchemy-bigquery==1.12.0
+    # via apache-superset
+sqloxide==0.1.51
+    # via apache-superset
+statsd==4.0.1
+    # via apache-superset
+tqdm==4.67.1
+    # via
+    #   cmdstanpy
+    #   prophet
+trino==0.330.0
+    # via apache-superset
+tzlocal==5.2
+    # via trino
+zope-event==5.0
+    # via gevent
+zope-interface==5.4.0
+    # via gevent

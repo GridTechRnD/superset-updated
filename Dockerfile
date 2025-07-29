@@ -228,6 +228,9 @@ COPY docker/superset-websocket /app/docker/superset-websocket
 COPY requirements/base.txt requirements/
 RUN --mount=type=cache,target=${SUPERSET_HOME}/.cache/uv \
     /app/docker/pip-install.sh --requires-build-essential -r requirements/base.txt
+COPY requirements/prod-extra.txt requirements/
+RUN --mount=type=cache,target=${SUPERSET_HOME}/.cache/uv \
+    /app/docker/pip-install.sh --requires-build-essential -r requirements/prod-extra.txt
 # Install the superset package
 RUN --mount=type=cache,target=${SUPERSET_HOME}/.cache/uv \
     uv pip install .
