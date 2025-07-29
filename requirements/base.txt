@@ -107,6 +107,7 @@ flask==2.3.3
     #   flask-migrate
     #   flask-session
     #   flask-sqlalchemy
+    #   flask-cors
     #   flask-wtf
 flask-appbuilder==4.5.5
     # via apache-superset (pyproject.toml)

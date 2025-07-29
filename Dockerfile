@@ -217,6 +217,13 @@ EXPOSE ${SUPERSET_PORT}
 ######################################################################
 FROM python-common AS lean
 
+COPY docker/docker-bootstrap.sh /app/docker/
+COPY docker/docker-init.sh /app/docker/
+COPY docker/pip-install.sh /app/docker/
+COPY docker/apt-install.sh /app/docker/
+COPY docker/entrypoints/run-server.sh /app/docker/entrypoints/
+COPY docker/nginx /app/docker/nginx
+COPY docker/superset-websocket /app/docker/superset-websocket
 # Install Python dependencies using docker/pip-install.sh
 COPY requirements/base.txt requirements/
 RUN --mount=type=cache,target=${SUPERSET_HOME}/.cache/uv \
