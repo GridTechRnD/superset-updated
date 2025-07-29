@@ -28,28 +28,12 @@ jobs:
       - name: Set up Docker Buildx
         uses: docker/setup-buildx-action@v3
 
+
       - name: Build and push superset_app
         uses: docker/build-push-action@v5
         with:
           context: .
           file: Dockerfile
           push: true
-          tags: ghcr.io/gridtechrnd/build-superset:latest
-
-      - name: Build and push superset_worker
-        uses: docker/build-push-action@v5
-        with:
-          context: .
-          file: Dockerfile
-          push: true
-          target: worker
-          tags: ghcr.io/gridtechrnd/build-superset-worker:latest
-
-      - name: Build and push superset_worker_beat
-        uses: docker/build-push-action@v5
-        with:
-          context: .
-          file: Dockerfile
-          push: true
-          target: worker-beat
-          tags: ghcr.io/gridtechrnd/build-superset-worker-beat:latest
+          target: lean
+          tags: ghcr.io/gridtechrnd/superset-updated:latest
