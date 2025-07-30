@@ -233,10 +233,10 @@ RUN --mount=type=cache,target=${SUPERSET_HOME}/.cache/uv \
 RUN apt-get update && \
     apt-get install -y pkg-config default-libmysqlclient-dev firefox-esr wget && \
     wget -O /tmp/geckodriver.tar.gz https://github.com/mozilla/geckodriver/releases/download/v0.36.0/geckodriver-v0.36.0-linux64.tar.gz && \
-    tar -xzf /tmp/geckodriver.tar.gz -C /usr/local/bin && \
-    mv /usr/local/bin/geckodriver /usr/local/bin/geckodriver && \
+    tar -xzf /tmp/geckodriver.tar.gz -C /tmp && \
+    mv /tmp/geckodriver /usr/local/bin/geckodriver && \
     chmod +x /usr/local/bin/geckodriver && \
-    rm -rf /tmp/geckodriver.tar.gz
+    rm -rf /tmp/geckodriver /tmp/geckodriver.tar.gz
 
 COPY requirements/prod-extra.txt requirements/
 RUN --mount=type=cache,target=${SUPERSET_HOME}/.cache/uv \
