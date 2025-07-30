@@ -229,9 +229,14 @@ COPY requirements/base.txt requirements/
 RUN --mount=type=cache,target=${SUPERSET_HOME}/.cache/uv \
     /app/docker/pip-install.sh --requires-build-essential -r requirements/base.txt
 
+# Install system dependencies for MySQL and Firefox/geckodriver
 RUN apt-get update && \
-    apt-get install -y pkg-config default-libmysqlclient-dev
-    
+    apt-get install -y pkg-config default-libmysqlclient-dev firefox-esr wget && \
+    wget -O /tmp/geckodriver.tar.gz https://github.com/mozilla/geckodriver/releases/latest/download/geckodriver-linux64.tar.gz && \
+    tar -xzf /tmp/geckodriver.tar.gz -C /usr/local/bin && \
+    chmod +x /usr/local/bin/geckodriver && \
+    rm -rf /tmp/geckodriver.tar.gz
+
 COPY requirements/prod-extra.txt requirements/
 RUN --mount=type=cache,target=${SUPERSET_HOME}/.cache/uv \
     /app/docker/pip-install.sh --requires-build-essential -r requirements/prod-extra.txt
