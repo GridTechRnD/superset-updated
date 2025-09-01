@@ -917,3 +917,5 @@ zstandard==0.23.0
 
 # Needed for Dremio
 sqlalchemy_dremio==3.0.4
+# Needed for SSO
+authlib==1.6.3
