@@ -33,7 +33,6 @@ import {
   NumberFormatter,
   styled,
   t,
-  useTheme,
 } from '@superset-ui/core';
 import { aggregatorTemplates, PivotTable, sortAs } from './react-pivottable';
 import {
@@ -44,14 +43,47 @@ import {
   SelectedFiltersType,
 } from './types';
 
+
+
 const Styles = styled.div<PivotTableStylesProps>`
   ${({ height, width, margin }) => `
-      margin: ${margin}px;
-      height: ${height - margin * 2}px;
-      width: ${
-        typeof width === 'string' ? parseInt(width, 10) : width - margin * 2
-      }px;
- `}
+    margin: ${margin}px;
+    height: ${height - margin * 2}px;
+    width: ${typeof width === 'string' ? parseInt(width, 10) : width - margin * 2}px;
+  `}
+
+  /* Highlight styles */
+  & .pvt-highlight,
+  & .pvtVal.pvt-highlight {
+    background-color: #e0e0e0 !important; /* fallback for colorBorderSecondary */
+    font-weight: bold;
+  }
+  
+  /* Make the table use the full container width */
+  & .pvtTable {
+    width: 100%;
+  }
+
+  /* VVV THIS IS THE FIX VVV */
+
+  /* Force the ENTIRE first column (spacer, header, and labels) to have the same auto-sized width */
+  & .pvtAxisLabel,
+  & .pvtRowLabel,
+  & .pvt-super-header-spacer { /* <-- Add the new class to the selector */
+    width: 1%;
+    white-space: nowrap;
+    text-align: left;
+  }
+  
+  /* Force ALL OTHER columns to have equal widths */
+  & .pvtColLabel,
+  & .pvtVal,
+  & .pvtTotal,
+  & .pvtTotalLabel {
+    width: 1%;
+    white-space: normal;
+    text-align: center;
+  }
 `;
 
 const PivotTableWrapper = styled.div`
@@ -64,12 +96,12 @@ const METRIC_KEY = t('Metric');
 const vals = ['value'];
 
 const StyledPlusSquareOutlined = styled(PlusSquareOutlined)`
-  stroke: ${({ theme }) => theme.colors.grayscale.light2};
+  stroke: #e0e0e0;
   stroke-width: 16px;
 `;
 
 const StyledMinusSquareOutlined = styled(MinusSquareOutlined)`
-  stroke: ${({ theme }) => theme.colors.grayscale.light2};
+  stroke: #e0e0e0;
   stroke-width: 16px;
 `;
 
@@ -157,7 +189,7 @@ export default function PivotTableChart(props: PivotTableProps) {
     allowRenderHtml,
   } = props;
 
-  const theme = useTheme();
+  // const theme = useTheme();
   const defaultFormatter = useMemo(
     () =>
       currencyFormat?.symbol
@@ -374,66 +406,79 @@ export default function PivotTableChart(props: PivotTableProps) {
   );
 
   const toggleFilter = useCallback(
-    (
-      e: MouseEvent,
-      value: string,
-      filters: FilterType,
-      pivotData: Record<string, any>,
-      isSubtotal: boolean,
-      isGrandTotal: boolean,
-    ) => {
-      if (isSubtotal || isGrandTotal || !emitCrossFilters) {
-        return;
-      }
+  (
+    e: MouseEvent,
+    value: string,
+    filters: FilterType,
+    pivotData: Record<string, any>,
+    isSubtotal: boolean,
+    isGrandTotal: boolean,
+  ) => {
+    // Keep initial checks
+    if (isSubtotal || isGrandTotal || !emitCrossFilters || getSelectedText()) {
+      return;
+    }
 
-      // allow selecting text in a cell
-      if (getSelectedText()) {
-        return;
-      }
+    const filtersCopy = { ...filters };
+    delete filtersCopy[METRIC_KEY]; // Exclude the metric from being a filter
 
-      const isActiveFilterValue = (key: string, val: DataRecordValue) =>
-        !!selectedFilters && selectedFilters[key]?.includes(val);
+    const filtersEntries = Object.entries(filtersCopy);
+    if (filtersEntries.length === 0) {
+      return;
+    }
+    
+    let updatedFilters = { ...(selectedFilters || {}) };
 
-      const filtersCopy = { ...filters };
-      delete filtersCopy[METRIC_KEY];
+    // This is the key logic change:
+    // First, determine if we are ADDING or REMOVING the filter combination.
+    // If every filter from the clicked cell is already active, our goal is to remove them.
+    const isClearingFilters = filtersEntries.every(
+      ([key, val]) => updatedFilters[key]?.includes(val),
+    );
 
-      const filtersEntries = Object.entries(filtersCopy);
-      if (filtersEntries.length === 0) {
-        return;
-      }
-
-      const [key, val] = filtersEntries[filtersEntries.length - 1];
-
-      let updatedFilters = { ...(selectedFilters || {}) };
-      // multi select
-      // if (selectedFilters && isActiveFilterValue(key, val)) {
-      //   updatedFilters[key] = selectedFilters[key].filter((x: DataRecordValue) => x !== val);
-      // } else {
-      //   updatedFilters[key] = [...(selectedFilters?.[key] || []), val];
-      // }
-      // single select
-      if (selectedFilters && isActiveFilterValue(key, val)) {
-        updatedFilters = {};
+    // Now, loop through ALL filter entries and apply the logic
+    filtersEntries.forEach(([key, val]) => {
+      if (isClearingFilters) {
+        // --- REMOVE LOGIC ---
+        // If the filter is active, remove this specific value from the array.
+        if (updatedFilters[key]) {
+          updatedFilters[key] = updatedFilters[key].filter(
+            (x: DataRecordValue) => x !== val,
+          );
+          // If the array is now empty, remove the key entirely.
+          if (updatedFilters[key].length === 0) {
+            delete updatedFilters[key];
+          }
+        }
       } else {
-        updatedFilters = {
-          [key]: [val],
-        };
+        // --- ADD LOGIC ---
+        // Add the value to the filter, preventing duplicates.
+        const currentValues = new Set(updatedFilters[key] || []);
+        currentValues.add(val);
+        updatedFilters[key] = Array.from(currentValues);
       }
-      if (
-        Array.isArray(updatedFilters[key]) &&
-        updatedFilters[key].length === 0
-      ) {
-        delete updatedFilters[key];
-      }
-      handleChange(updatedFilters);
-    },
-    [emitCrossFilters, selectedFilters, handleChange],
-  );
+    });
+
+    handleChange(updatedFilters);
+  },
+  [emitCrossFilters, selectedFilters, handleChange],
+);
 
   const tableOptions = useMemo(
     () => ({
       clickRowHeaderCallback: toggleFilter,
       clickColumnHeaderCallback: toggleFilter,
+      clickCellCallback: (
+      cell: { value: string },
+      e: MouseEvent,
+      filters: FilterType,
+      pivotData: Record<string, any>,
+      isSubtotal: boolean,
+      isGrandTotal: boolean,
+    ) => {
+      
+      toggleFilter(e, cell.value, filters, pivotData, isSubtotal, isGrandTotal);
+    },
       colTotals,
       colSubTotals,
       rowTotals,
@@ -538,7 +583,7 @@ export default function PivotTableChart(props: PivotTableProps) {
   );
 
   return (
-    <Styles height={height} width={width} margin={theme.gridUnit * 4}>
+    <Styles height={height} width={width} margin={16}>
       <PivotTableWrapper>
         <PivotTable
           data={unpivotedData}

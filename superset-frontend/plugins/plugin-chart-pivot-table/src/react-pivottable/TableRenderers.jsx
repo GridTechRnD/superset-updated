@@ -23,9 +23,11 @@ import PropTypes from 'prop-types';
 import { PivotData, flatKey } from './utilities';
 import { Styles } from './Styles';
 
+
+
 const parseLabel = value => {
   if (typeof value === 'string') {
-    if (value === 'metric') return t('metric');
+    if (value === 'metric') return null;
     return value;
   }
   if (typeof value === 'number') {
@@ -34,6 +36,12 @@ const parseLabel = value => {
   return String(value);
 };
 
+function displayCell(value, allowRenderHtml) {
+  if (allowRenderHtml && typeof value === 'string') {
+    return safeHtmlSpan(value);
+  }
+  return parseLabel(value);
+}
 function displayHeaderCell(
   needToggle,
   ArrowIcon,
@@ -42,6 +50,7 @@ function displayHeaderCell(
   namesMapping,
   allowRenderHtml,
 ) {
+  if (value === 'metric') return null;
   const name = namesMapping[value] || value;
   const parsedLabel = parseLabel(name);
   const labelContent =
@@ -342,186 +351,249 @@ export class TableRenderer extends Component {
     return spans;
   }
 
-  renderColHeaderRow(attrName, attrIdx, pivotSettings) {
-    // Render a single row in the column header at the top of the pivot table.
+  
 
-    const {
-      rowAttrs,
-      colAttrs,
-      colKeys,
-      visibleColKeys,
-      colAttrSpans,
-      rowTotals,
-      arrowExpanded,
-      arrowCollapsed,
-      colSubtotalDisplay,
-      maxColVisible,
-      pivotData,
-      namesMapping,
-      allowRenderHtml,
-    } = pivotSettings;
-    const {
-      highlightHeaderCellsOnHover,
-      omittedHighlightHeaderGroups = [],
-      highlightedHeaderCells,
-      dateFormatters,
-    } = this.props.tableOptions;
+    renderColSuperHeader(pivotSettings) {
+      const {
+        rowAttrs,
+        colAttrs,
+        visibleColKeys,
+        namesMapping,
+        allowRenderHtml,
+      } = pivotSettings;
 
-    const spaceCell =
-      attrIdx === 0 && rowAttrs.length !== 0 ? (
-        <th
-          key="padding"
-          colSpan={rowAttrs.length}
-          rowSpan={colAttrs.length}
-          aria-hidden="true"
-        />
-      ) : null;
+      const METRIC_ATTR_NAME = t('Metric');
 
-    const needToggle =
-      colSubtotalDisplay.enabled && attrIdx !== colAttrs.length - 1;
-    let arrowClickHandle = null;
-    let subArrow = null;
-    if (needToggle) {
-      arrowClickHandle =
-        attrIdx + 1 < maxColVisible
-          ? this.collapseAttr(false, attrIdx, colKeys)
-          : this.expandAttr(false, attrIdx, colKeys);
-      subArrow = attrIdx + 1 < maxColVisible ? arrowExpanded : arrowCollapsed;
-    }
-    const attrNameCell = (
-      <th key="label" className="pvtAxisLabel">
-        {displayHeaderCell(
-          needToggle,
-          subArrow,
-          arrowClickHandle,
-          attrName,
-          namesMapping,
-          allowRenderHtml,
-        )}
-      </th>
-    );
+      // Get all column attribute names, excluding 'Metric'.
+      const colAttrLabels = colAttrs.filter(attr => attr !== METRIC_ATTR_NAME);
 
-    const attrValueCells = [];
-    const rowIncrSpan = rowAttrs.length !== 0 ? 1 : 0;
-    // Iterate through columns. Jump over duplicate values.
-    let i = 0;
-    while (i < visibleColKeys.length) {
-      let handleContextMenu;
-      const colKey = visibleColKeys[i];
-      const colSpan = attrIdx < colKey.length ? colAttrSpans[i][attrIdx] : 1;
-      let colLabelClass = 'pvtColLabel';
-      if (attrIdx < colKey.length) {
-        if (!omittedHighlightHeaderGroups.includes(colAttrs[attrIdx])) {
-          if (highlightHeaderCellsOnHover) {
-            colLabelClass += ' hoverable';
-          }
-          handleContextMenu = e =>
-            this.props.onContextMenu(e, colKey, undefined, {
-              [attrName]: colKey[attrIdx],
-            });
-        }
-        if (
-          highlightedHeaderCells &&
-          Array.isArray(highlightedHeaderCells[colAttrs[attrIdx]]) &&
-          highlightedHeaderCells[colAttrs[attrIdx]].includes(colKey[attrIdx])
-        ) {
-          colLabelClass += ' active';
-        }
-
-        const rowSpan = 1 + (attrIdx === colAttrs.length - 1 ? rowIncrSpan : 0);
-        const flatColKey = flatKey(colKey.slice(0, attrIdx + 1));
-        const onArrowClick = needToggle ? this.toggleColKey(flatColKey) : null;
-
-        const headerCellFormattedValue =
-          dateFormatters &&
-          dateFormatters[attrName] &&
-          typeof dateFormatters[attrName] === 'function'
-            ? dateFormatters[attrName](colKey[attrIdx])
-            : colKey[attrIdx];
-        attrValueCells.push(
-          <th
-            className={colLabelClass}
-            key={`colKey-${flatColKey}`}
-            colSpan={colSpan}
-            rowSpan={rowSpan}
-            role="columnheader button"
-            onClick={this.clickHeaderHandler(
-              pivotData,
-              colKey,
-              this.props.cols,
-              attrIdx,
-              this.props.tableOptions.clickColumnHeaderCallback,
-            )}
-            onContextMenu={handleContextMenu}
-          >
-            {displayHeaderCell(
-              needToggle,
-              this.state.collapsedCols[flatColKey]
-                ? arrowCollapsed
-                : arrowExpanded,
-              onArrowClick,
-              headerCellFormattedValue,
-              namesMapping,
-              allowRenderHtml,
-            )}
-          </th>,
-        );
-      } else if (attrIdx === colKey.length) {
-        const rowSpan = colAttrs.length - colKey.length + rowIncrSpan;
-        attrValueCells.push(
-          <th
-            className={`${colLabelClass} pvtSubtotalLabel`}
-            key={`colKeyBuffer-${flatKey(colKey)}`}
-            colSpan={colSpan}
-            rowSpan={rowSpan}
-            role="columnheader button"
-            onClick={this.clickHeaderHandler(
-              pivotData,
-              colKey,
-              this.props.cols,
-              attrIdx,
-              this.props.tableOptions.clickColumnHeaderCallback,
-              true,
-            )}
-          >
-            {t('Subtotal')}
-          </th>,
-        );
+      // If there are no actual column dimensions, don't render this header.
+      if (colAttrLabels.length === 0) {
+        return null;
       }
-      // The next colSpan columns will have the same value anyway...
-      i += colSpan;
+
+      // Join multiple column labels with a separator if they exist.
+      const superHeaderLabel = colAttrLabels
+        .map(label => namesMapping[label] || label)
+        .join(' / ');
+
+      return (
+        <tr key="col-super-header">
+          {/* This empty cell aligns the header with the data columns. */}
+          {rowAttrs.length > 0 && <th colSpan={rowAttrs.length} />}
+
+          {/* This is the actual header, spanning all the value columns. */}
+          <th
+          colSpan={visibleColKeys.length}
+          className="pvtColLabel"
+        >
+          {displayCell(superHeaderLabel, allowRenderHtml)}
+        </th>
+        </tr>
+      );
     }
 
-    const totalCell =
-      attrIdx === 0 && rowTotals ? (
+  renderColHeaderRow(attrName, attrIdx, pivotSettings) {
+
+  // The key used to identify the metric row.
+  const METRIC_ATTR_NAME = t('Metric');
+
+  //  If this is the metric header row, do not render it.
+  if (attrName === METRIC_ATTR_NAME) {
+    return null;
+  }
+
+  // Adjust layout variables for the other header rows to fill the gap.
+  const {
+    rowAttrs,
+    colAttrs,
+    colKeys,
+    visibleColKeys,
+    colAttrSpans,
+    rowTotals,
+    arrowExpanded,
+    arrowCollapsed,
+    colSubtotalDisplay,
+    maxColVisible,
+    pivotData,
+    namesMapping,
+    allowRenderHtml,
+  } = pivotSettings;
+
+  const {
+    highlightHeaderCellsOnHover,
+    omittedHighlightHeaderGroups = [],
+    highlightedHeaderCells,
+    dateFormatters,
+  } = this.props.tableOptions;
+
+  // Check if the 'Metric' row exists and is being hidden by our logic above.
+  const metricRowIsHidden = this.props.cols.includes(METRIC_ATTR_NAME);
+
+  // The first VISIBLE row is the one that needs to render the special corner and total cells.
+  // If the metric row (usually index 0) is hidden, the new "first" row is at index 1.
+  const isFirstVisibleHeaderRow = metricRowIsHidden
+    ? attrIdx === 1
+    : attrIdx === 0;
+
+  // Calculate the new total number of visible rows for rowspan purposes.
+  const visibleColAttrsCount = metricRowIsHidden
+    ? colAttrs.length
+    : colAttrs.length;
+
+  // --- END of MODIFICATIONS ---
+
+
+  const spaceCell =
+    isFirstVisibleHeaderRow && rowAttrs.length !== 0 ? (
+      <th
+        key="padding"
+        colSpan={rowAttrs.length}
+        rowSpan={visibleColAttrsCount} // Use adjusted rowspan
+        aria-hidden="true"
+      />
+    ) : null;
+
+  const needToggle =
+    colSubtotalDisplay.enabled && attrIdx !== colAttrs.length - 1;
+  let arrowClickHandle = null;
+  let subArrow = null;
+  if (needToggle) {
+    arrowClickHandle =
+      attrIdx + 1 < maxColVisible
+        ? this.collapseAttr(false, attrIdx, colKeys)
+        : this.expandAttr(false, attrIdx, colKeys);
+    subArrow = attrIdx + 1 < maxColVisible ? arrowExpanded : arrowCollapsed;
+  }
+  // const attrNameCell = (
+  //   <th key="label" className="pvtAxisLabel">
+  //     {displayHeaderCell(
+  //       needToggle,
+  //       subArrow,
+  //       arrowClickHandle,
+  //       attrName,
+  //       namesMapping,
+  //       allowRenderHtml,
+  //     )}
+  //   </th>
+  // );
+
+  const attrValueCells = [];
+  const rowIncrSpan = rowAttrs.length !== 0 ? 1 : 0;
+  let i = 0;
+  while (i < visibleColKeys.length) {
+    let handleContextMenu;
+    const colKey = visibleColKeys[i];
+    const colSpan = attrIdx < colKey.length ? colAttrSpans[i][attrIdx] : 1;
+    let colLabelClass = 'pvtColLabel';
+    if (attrIdx < colKey.length) {
+      if (!omittedHighlightHeaderGroups.includes(colAttrs[attrIdx])) {
+        if (highlightHeaderCellsOnHover) {
+          colLabelClass += ' hoverable';
+        }
+        handleContextMenu = e =>
+          this.props.onContextMenu(e, colKey, undefined, {
+            [attrName]: colKey[attrIdx],
+          });
+      }
+      if (
+        highlightedHeaderCells &&
+        Array.isArray(highlightedHeaderCells[colAttrs[attrIdx]]) &&
+        highlightedHeaderCells[colAttrs[attrIdx]].includes(colKey[attrIdx])
+      ) {
+        colLabelClass += ' active';
+      }
+      const rowSpan = 1 + (attrIdx === colAttrs.length - 1 ? rowIncrSpan : 0);
+      const flatColKey = flatKey(colKey.slice(0, attrIdx + 1));
+      const onArrowClick = needToggle ? this.toggleColKey(flatColKey) : null;
+      const headerCellFormattedValue =
+        dateFormatters &&
+        dateFormatters[attrName] &&
+        typeof dateFormatters[attrName] === 'function'
+          ? dateFormatters[attrName](colKey[attrIdx])
+          : colKey[attrIdx];
+      attrValueCells.push(
         <th
-          key="total"
-          className="pvtTotalLabel"
-          rowSpan={colAttrs.length + Math.min(rowAttrs.length, 1)}
+          className={colLabelClass}
+          key={`colKey-${flatColKey}`}
+          colSpan={colSpan}
+          rowSpan={rowSpan}
           role="columnheader button"
           onClick={this.clickHeaderHandler(
             pivotData,
-            [],
+            colKey,
             this.props.cols,
             attrIdx,
             this.props.tableOptions.clickColumnHeaderCallback,
-            false,
+          )}
+          onContextMenu={handleContextMenu}
+        >
+          {displayHeaderCell(
+            needToggle,
+            this.state.collapsedCols[flatColKey]
+              ? arrowCollapsed
+              : arrowExpanded,
+            onArrowClick,
+            headerCellFormattedValue,
+            namesMapping,
+            allowRenderHtml,
+          )}
+        </th>,
+      );
+    } else if (attrIdx === colKey.length) {
+      const rowSpan = colAttrs.length - colKey.length + rowIncrSpan;
+      attrValueCells.push(
+        <th
+          className={`${colLabelClass} pvtSubtotalLabel`}
+          key={`colKeyBuffer-${flatKey(colKey)}`}
+          colSpan={colSpan}
+          rowSpan={rowSpan}
+          role="columnheader button"
+          onClick={this.clickHeaderHandler(
+            pivotData,
+            colKey,
+            this.props.cols,
+            attrIdx,
+            this.props.tableOptions.clickColumnHeaderCallback,
             true,
           )}
         >
-          {t('Total (%(aggregatorName)s)', {
-            aggregatorName: t(this.props.aggregatorName),
-          })}
-        </th>
-      ) : null;
-
-    const cells = [spaceCell, attrNameCell, ...attrValueCells, totalCell];
-    return <tr key={`colAttr-${attrIdx}`}>{cells}</tr>;
+          {t('Subtotal')}
+        </th>,
+      );
+    }
+    i += colSpan;
   }
 
+  const totalCell =
+    isFirstVisibleHeaderRow && rowTotals ? (
+      <th
+        key="total"
+        className="pvtTotalLabel"
+        rowSpan={visibleColAttrsCount + Math.min(rowAttrs.length, 1)} // Use adjusted rowspan
+        role="columnheader button"
+        onClick={this.clickHeaderHandler(
+          pivotData,
+          [],
+          this.props.cols,
+          attrIdx,
+          this.props.tableOptions.clickColumnHeaderCallback,
+          false,
+          true,
+        )}
+      >
+        {t('Total (%(aggregatorName)s)', {
+          aggregatorName: t(this.props.aggregatorName),
+        })}
+      </th>
+    ) : null;
+
+  const cells = [ ...attrValueCells, totalCell];
+  return <tr key={`colAttr-${attrIdx}`}>{cells}</tr>;
+}
+
   renderRowHeaderRow(pivotSettings) {
-    // Render just the attribute names of the rows (the actual attribute values
-    // will show up in the individual rows).
+    
 
     const {
       rowAttrs,
@@ -729,6 +801,28 @@ export class TableRenderer extends Component {
         });
       }
 
+      // Cell highlight logic
+      let cellClassName = "pvtVal";
+      if (this.props.tableOptions && this.props.tableOptions.highlightedHeaderCells) {
+        // Build cell filters for comparison
+        const cellFilters = {
+          ...Object.fromEntries(rowAttrs.map((attr, i) => [attr, rowKey[i]])),
+          ...Object.fromEntries(colAttrs.map((attr, i) => [attr, colKey[i]])),
+        };
+        // Only highlight if highlightedHeaderCells matches exactly the cellFilters
+        const cellKeys = Object.keys(cellFilters);
+        const highlightKeys = Object.keys(this.props.tableOptions.highlightedHeaderCells);
+        const isExactMatch = cellKeys.length === highlightKeys.length &&
+          cellKeys.every(key =>
+            Array.isArray(this.props.tableOptions.highlightedHeaderCells[key]) &&
+            this.props.tableOptions.highlightedHeaderCells[key].length === 1 &&
+            this.props.tableOptions.highlightedHeaderCells[key][0] === cellFilters[key]
+          );
+        if (isExactMatch) {
+          cellClassName += " active";
+        }
+      }
+
       const style = agg.isSubtotal
         ? { fontWeight: 'bold' }
         : { backgroundColor };
@@ -738,12 +832,40 @@ export class TableRenderer extends Component {
           role="gridcell"
           className="pvtVal"
           key={`pvtVal-${flatColKey}`}
-          onClick={rowClickHandlers[flatColKey]}
+          onClick={e => {
+            // Keep existing subtotal/total behavior
+            if (rowClickHandlers[flatColKey]) {
+              rowClickHandlers[flatColKey](e);
+            }
+
+            if (this.props.tableOptions?.clickCellCallback) {
+              const filters = {
+                // Merge row + column dimension filters
+                ...Object.fromEntries(
+                  rowAttrs.map((attr, i) => [attr, rowKey[i]])
+                ),
+                ...Object.fromEntries(
+                  colAttrs.map((attr, i) => [attr, colKey[i]])
+                ),
+              };
+
+              // Invoke your registered callback
+              this.props.tableOptions.clickCellCallback(
+                { value: aggValue },
+                e,
+                filters,
+                pivotData,
+                !!agg.isSubtotal,
+                false,
+              );
+            }
+          }}
           onContextMenu={e => this.props.onContextMenu(e, colKey, rowKey)}
           style={style}
         >
-          {agg.format(aggValue)}
+          {displayCell(agg.format(aggValue), allowRenderHtml)}
         </td>
+
       );
     });
 
@@ -759,7 +881,7 @@ export class TableRenderer extends Component {
           onClick={rowTotalCallbacks[flatRowKey]}
           onContextMenu={e => this.props.onContextMenu(e, undefined, rowKey)}
         >
-          {agg.format(aggValue)}
+          {displayCell(agg.format(aggValue), allowRenderHtml)}
         </td>
       );
     }
@@ -823,7 +945,7 @@ export class TableRenderer extends Component {
           onContextMenu={e => this.props.onContextMenu(e, colKey, undefined)}
           style={{ padding: '5px' }}
         >
-          {agg.format(aggValue)}
+          {displayCell(agg.format(aggValue), this.props.allowRenderHtml)}
         </td>
       );
     });
@@ -840,7 +962,7 @@ export class TableRenderer extends Component {
           onClick={grandTotalCallback}
           onContextMenu={e => this.props.onContextMenu(e, undefined, undefined)}
         >
-          {agg.format(aggValue)}
+          {displayCell(agg.format(aggValue), this.props.allowRenderHtml)}
         </td>
       );
     }
@@ -877,6 +999,8 @@ export class TableRenderer extends Component {
       this.cachedProps = this.props;
       this.cachedBasePivotSettings = this.getBasePivotSettings();
     }
+
+    
     const {
       colAttrs,
       rowAttrs,
@@ -918,9 +1042,14 @@ export class TableRenderer extends Component {
       <Styles isDashboardEditMode={this.isDashboardEditMode()}>
         <table className="pvtTable" role="grid">
           <thead>
+            {this.renderColSuperHeader(pivotSettings)}
             {colAttrs.map((c, j) =>
               this.renderColHeaderRow(c, j, pivotSettings),
             )}
+
+            {/* {colAttrs.map((c, j) =>
+              this.renderColHeaderRow(c, j, pivotSettings),
+            )} */}
             {rowAttrs.length !== 0 && this.renderRowHeaderRow(pivotSettings)}
           </thead>
           <tbody>
