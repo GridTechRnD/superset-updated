@@ -7,7 +7,7 @@
  * "License"); you may not use this file except in compliance
  * with the License.  You may obtain a copy of the License at
  *
- *   http://www.apache.org/licenses/LICENSE-2.0
+ * http://www.apache.org/licenses/LICENSE-2.0
  *
  * Unless required by applicable law or agreed to in writing,
  * software distributed under the License is distributed on an
@@ -44,14 +44,30 @@ import {
   SelectedFiltersType,
 } from './types';
 
+// In PivotTableChart.tsx
+
 const Styles = styled.div<PivotTableStylesProps>`
-  ${({ height, width, margin }) => `
-      margin: ${margin}px;
-      height: ${height - margin * 2}px;
-      width: ${
-        typeof width === 'string' ? parseInt(width, 10) : width - margin * 2
-      }px;
- `}
+  ${({ height, width, margin, theme }) => `
+    margin: ${margin}px;
+    height: ${height - margin * 2}px;
+    width: ${
+      typeof width === 'string' ? parseInt(width, 10) : width - margin * 2
+    }px;
+
+    /* START: ADD THESE STYLES */
+    .pvtVal.hoverable {
+      cursor: pointer;
+      &:hover {
+        background-color: ${theme.colors.grayscale.light2};
+      }
+    }
+
+    .pvtVal.active {
+      background-color: ${theme.colors.grayscale.light1};
+      font-weight: ${theme.typography.weights.bold};
+    }
+    /* END: ADD THESE STYLES */
+  `}
 `;
 
 const PivotTableWrapper = styled.div`
@@ -373,6 +389,7 @@ export default function PivotTableChart(props: PivotTableProps) {
     [groupbyColumnsRaw, groupbyRowsRaw, selectedFilters],
   );
 
+  // START OF CHANGES: New toggleFilter function
   const toggleFilter = useCallback(
     (
       e: MouseEvent,
@@ -391,9 +408,6 @@ export default function PivotTableChart(props: PivotTableProps) {
         return;
       }
 
-      const isActiveFilterValue = (key: string, val: DataRecordValue) =>
-        !!selectedFilters && selectedFilters[key]?.includes(val);
-
       const filtersCopy = { ...filters };
       delete filtersCopy[METRIC_KEY];
 
@@ -402,38 +416,58 @@ export default function PivotTableChart(props: PivotTableProps) {
         return;
       }
 
-      const [key, val] = filtersEntries[filtersEntries.length - 1];
-
       let updatedFilters = { ...(selectedFilters || {}) };
-      // multi select
-      // if (selectedFilters && isActiveFilterValue(key, val)) {
-      //   updatedFilters[key] = selectedFilters[key].filter((x: DataRecordValue) => x !== val);
-      // } else {
-      //   updatedFilters[key] = [...(selectedFilters?.[key] || []), val];
-      // }
-      // single select
-      if (selectedFilters && isActiveFilterValue(key, val)) {
-        updatedFilters = {};
-      } else {
-        updatedFilters = {
-          [key]: [val],
-        };
-      }
-      if (
-        Array.isArray(updatedFilters[key]) &&
-        updatedFilters[key].length === 0
-      ) {
-        delete updatedFilters[key];
-      }
+
+      // Determine if the full set of filters from the click is already active.
+      // If so, the action will be to clear/remove this filter set.
+      const isClearingFilters = filtersEntries.every(
+        ([key, val]) => updatedFilters[key]?.includes(val),
+      );
+
+      // Loop through all filter dimensions provided by the click
+      filtersEntries.forEach(([key, val]) => {
+        if (isClearingFilters) {
+          // --- REMOVE LOGIC ---
+          if (updatedFilters[key]) {
+            updatedFilters[key] = updatedFilters[key].filter(
+              (x: DataRecordValue) => x !== val,
+            );
+            // If the array is now empty, remove the key entirely.
+            if (updatedFilters[key].length === 0) {
+              delete updatedFilters[key];
+            }
+          }
+        } else {
+          // --- ADD LOGIC ---
+          // Use a Set to avoid duplicate values
+          const currentValues = new Set(updatedFilters[key] || []);
+          currentValues.add(val);
+          updatedFilters[key] = Array.from(currentValues);
+        }
+      });
+
       handleChange(updatedFilters);
     },
     [emitCrossFilters, selectedFilters, handleChange],
   );
+  // END OF CHANGES
 
+  // START OF CHANGES: New tableOptions object
   const tableOptions = useMemo(
     () => ({
       clickRowHeaderCallback: toggleFilter,
       clickColumnHeaderCallback: toggleFilter,
+      // Add the cell click handler
+      clickCellCallback: (
+        e: MouseEvent,
+        value: string,
+        filters: FilterType,
+        pivotData: Record<string, any>,
+        isSubtotal: boolean,
+        isGrandTotal: boolean,
+      ) => {
+        toggleFilter(e, value, filters, pivotData, isSubtotal, isGrandTotal);
+      },
       colTotals,
       colSubTotals,
       rowTotals,
@@ -459,6 +493,7 @@ export default function PivotTableChart(props: PivotTableProps) {
       toggleFilter,
     ],
   );
+  // END OF CHANGES
 
   const subtotalOptions = useMemo(
     () => ({
