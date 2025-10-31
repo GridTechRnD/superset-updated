@@ -109,6 +109,9 @@ export type QueryFormExtraFilter = {
 export type ExtraFormDataAppend = {
   adhoc_filters?: AdhocFilter[];
   filters?: QueryObjectFilterClause[];
+
+  metrics?: (AdhocMetric | string)[];
+
   /** These properties are for dynamic cross chart interaction */
   interactive_drilldown?: string[];
   interactive_groupby?: string[];

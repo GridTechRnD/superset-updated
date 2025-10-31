@@ -27,6 +27,10 @@ import ChordChartPlugin from '@superset-ui/legacy-plugin-chart-chord';
 import CountryMapChartPlugin from '@superset-ui/legacy-plugin-chart-country-map';
 import HorizonChartPlugin from '@superset-ui/legacy-plugin-chart-horizon';
 import MapBoxChartPlugin from '@superset-ui/legacy-plugin-chart-map-box';
+
+
+
+import { SupersetPluginCustomFilter } from '../../../plugins/superset-plugin-custom-filter/src';
 import PairedTTestChartPlugin from '@superset-ui/legacy-plugin-chart-paired-t-test';
 import ParallelCoordinatesChartPlugin from '@superset-ui/legacy-plugin-chart-parallel-coordinates';
 import PartitionChartPlugin from '@superset-ui/legacy-plugin-chart-partition';
@@ -101,6 +105,11 @@ export default class MainPreset extends Preset {
         new BigNumberTotalChartPlugin().configure({
           key: VizType.BigNumberTotal,
         }),
+
+        new SupersetPluginCustomFilter().configure({ key: 'custom_filter' }),
+
+        
+
         new EchartsBoxPlotChartPlugin().configure({ key: VizType.BoxPlot }),
         new BubbleChartPlugin().configure({ key: VizType.LegacyBubble }),
         new BulletChartPlugin().configure({ key: VizType.Bullet }),

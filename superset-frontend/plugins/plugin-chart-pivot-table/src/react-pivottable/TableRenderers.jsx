@@ -7,7 +7,7 @@
  * "License"); you may not use this file except in compliance
  * with the License.  You may obtain a copy of the License at
  *
- *   http://www.apache.org/licenses/LICENSE-2.0
+ * http://www.apache.org/licenses/LICENSE-2.0
  *
  * Unless required by applicable law or agreed to in writing,
  * software distributed under the License is distributed on an
@@ -69,9 +69,6 @@ export class TableRenderer extends Component {
   constructor(props) {
     super(props);
 
-    // We need state to record which entries are collapsed and which aren't.
-    // This is an object with flat-keys indicating if the corresponding rows
-    // should be collapsed.
     this.state = { collapsedRows: {}, collapsedCols: {} };
 
     this.clickHeaderHandler = this.clickHeaderHandler.bind(this);
@@ -79,11 +76,8 @@ export class TableRenderer extends Component {
   }
 
   getBasePivotSettings() {
-    // One-time extraction of pivot settings that we'll use throughout the render.
-
     const { props } = this;
-    const colAttrs = props.cols;
-    const rowAttrs = props.rows;
+    const { cols: colAttrs, rows: rowAttrs } = props;
 
     const tableOptions = {
       rowTotals: true,
@@ -123,8 +117,6 @@ export class TableRenderer extends Component {
     const rowKeys = pivotData.getRowKeys();
     const colKeys = pivotData.getColKeys();
 
-    // Also pre-calculate all the callbacks for cells, etc... This is nice to have to
-    // avoid re-calculations of the call-backs on cell expansions, etc...
     const cellCallbacks = {};
     const rowTotalCallbacks = {};
     const colTotalCallbacks = {};
@@ -144,7 +136,6 @@ export class TableRenderer extends Component {
         });
       });
 
-      // Add in totals as well.
       if (rowTotals) {
         rowKeys.forEach(rowKey => {
           rowTotalCallbacks[flatKey(rowKey)] = this.clickHandler(
@@ -190,8 +181,7 @@ export class TableRenderer extends Component {
   }
 
   clickHandler(pivotData, rowValues, colValues) {
-    const colAttrs = this.props.cols;
-    const rowAttrs = this.props.rows;
+    const { cols: colAttrs, rows: rowAttrs } = this.props;
     const value = pivotData.getAggregator(rowValues, colValues).value();
     const filters = {};
     const colLimit = Math.min(colAttrs.length, colValues.length);
@@ -239,7 +229,6 @@ export class TableRenderer extends Component {
 
   collapseAttr(rowOrCol, attrIdx, allKeys) {
     return e => {
-      // Collapse an entire attribute.
       e.stopPropagation();
       const keyLen = attrIdx + 1;
       const collapsed = allKeys.filter(k => k.length === keyLen).map(flatKey);
@@ -263,8 +252,6 @@ export class TableRenderer extends Component {
 
   expandAttr(rowOrCol, attrIdx, allKeys) {
     return e => {
-      // Expand an entire attribute. This implicitly implies expanding all of the
-      // parents as well. It's a bit inefficient but ah well...
       e.stopPropagation();
       const updates = {};
       allKeys.forEach(k => {
@@ -310,18 +297,10 @@ export class TableRenderer extends Component {
   }
 
   calcAttrSpans(attrArr, numAttrs) {
-    // Given an array of attribute values (i.e. each element is another array with
-    // the value at every level), compute the spans for every attribute value at
-    // every level. The return value is a nested array of the same shape. It has
-    // -1's for repeated values and the span number otherwise.
-
     const spans = [];
-    // Index of the last new value
     const li = Array(numAttrs).map(() => 0);
     let lv = Array(numAttrs).map(() => null);
     for (let i = 0; i < attrArr.length; i += 1) {
-      // Keep increasing span values as long as the last keys are the same. For
-      // the rest, record spans of 1. Update the indices too.
       const cv = attrArr[i];
       const ent = [];
       let depth = 0;
@@ -343,8 +322,6 @@ export class TableRenderer extends Component {
   }
 
   renderColHeaderRow(attrName, attrIdx, pivotSettings) {
-    // Render a single row in the column header at the top of the pivot table.
-
     const {
       rowAttrs,
       colAttrs,
@@ -403,7 +380,6 @@ export class TableRenderer extends Component {
 
     const attrValueCells = [];
     const rowIncrSpan = rowAttrs.length !== 0 ? 1 : 0;
-    // Iterate through columns. Jump over duplicate values.
     let i = 0;
     while (i < visibleColKeys.length) {
       let handleContextMenu;
@@ -488,7 +464,6 @@ export class TableRenderer extends Component {
           </th>,
         );
       }
-      // The next colSpan columns will have the same value anyway...
       i += colSpan;
     }
 
@@ -496,7 +471,7 @@ export class TableRenderer extends Component {
       attrIdx === 0 && rowTotals ? (
         <th
           key="total"
-          className="pvtTotalLabel"
+          className="pvtTotalLabel23"
           rowSpan={colAttrs.length + Math.min(rowAttrs.length, 1)}
           role="columnheader button"
           onClick={this.clickHeaderHandler(
@@ -520,9 +495,6 @@ export class TableRenderer extends Component {
   }
 
   renderRowHeaderRow(pivotSettings) {
-    // Render just the attribute names of the rows (the actual attribute values
-    // will show up in the individual rows).
-
     const {
       rowAttrs,
       colAttrs,
@@ -586,9 +558,10 @@ export class TableRenderer extends Component {
     );
   }
 
-  renderTableRow(rowKey, rowIdx, pivotSettings) {
-    // Render a single row in the pivot table.
+  
+    // In TableRenderer.jsx, replace the whole method with this final version.
 
+renderTableRow(rowKey, rowIdx, pivotSettings) {
     const {
       rowAttrs,
       colAttrs,
@@ -602,7 +575,6 @@ export class TableRenderer extends Component {
       cellCallbacks,
       rowTotalCallbacks,
       namesMapping,
-      allowRenderHtml,
     } = pivotSettings;
 
     const {
@@ -612,7 +584,8 @@ export class TableRenderer extends Component {
       cellColorFormatters,
       dateFormatters,
     } = this.props.tableOptions;
-    const flatRowKey = flatKey(rowKey);
+    
+    const METRIC_KEY = t('Metric');
 
     const colIncrSpan = colAttrs.length !== 0 ? 1 : 0;
     const attrValueCells = rowKey.map((r, i) => {
@@ -672,7 +645,7 @@ export class TableRenderer extends Component {
               onArrowClick,
               headerCellFormattedValue,
               namesMapping,
-              allowRenderHtml,
+              this.props.allowRenderHtml,
             )}
           </th>
         );
@@ -701,21 +674,62 @@ export class TableRenderer extends Component {
         </th>
       ) : null;
 
-    const rowClickHandlers = cellCallbacks[flatRowKey] || {};
+    const rowClickHandlers = cellCallbacks[flatKey(rowKey)] || {};
     const valueCells = visibleColKeys.map(colKey => {
       const flatColKey = flatKey(colKey);
       const agg = pivotData.getAggregator(rowKey, colKey);
       const aggValue = agg.value();
 
-      const keys = [...rowKey, ...colKey];
+      let cellClassName = 'pvtVal';
+      let isActive = false;
+
+      if (this.props.tableOptions.highlightHeaderCellsOnHover) {
+        cellClassName += ' hoverable';
+      }
+
+      if (this.props.tableOptions.highlightedHeaderCells) {
+        const cellFilters = {
+          ...Object.fromEntries(
+            rowAttrs
+              .map((attr, i) => [attr, rowKey[i]])
+              .filter(([attr]) => attr !== METRIC_KEY),
+          ),
+          ...Object.fromEntries(
+            colAttrs
+              .map((attr, i) => [attr, colKey[i]])
+              .filter(([attr]) => attr !== METRIC_KEY),
+          ),
+        };
+
+        const cellKeys = Object.keys(cellFilters);
+        const highlightKeys = Object.keys(
+          this.props.tableOptions.highlightedHeaderCells,
+        );
+
+        const isExactMatch =
+          highlightKeys.length > 0 &&
+          cellKeys.length === highlightKeys.length &&
+          cellKeys.every(
+            key =>
+              Array.isArray(this.props.tableOptions.highlightedHeaderCells[key]) &&
+              this.props.tableOptions.highlightedHeaderCells[key].includes(
+                cellFilters[key],
+              ),
+          );
+
+        if (isExactMatch) {
+          cellClassName += ' active';
+          isActive = true;
+        }
+      }
+
       let backgroundColor;
-      if (cellColorFormatters) {
+      if (!isActive && cellColorFormatters) {
+        const keys = [...rowKey, ...colKey];
         Object.values(cellColorFormatters).forEach(cellColorFormatter => {
           if (Array.isArray(cellColorFormatter)) {
             keys.forEach(key => {
-              if (backgroundColor) {
-                return;
-              }
+              if (backgroundColor) return;
               cellColorFormatter
                 .filter(formatter => formatter.column === key)
                 .forEach(formatter => {
@@ -736,9 +750,32 @@ export class TableRenderer extends Component {
       return (
         <td
           role="gridcell"
-          className="pvtVal"
+          className={cellClassName}
           key={`pvtVal-${flatColKey}`}
-          onClick={rowClickHandlers[flatColKey]}
+          onClick={e => {
+            if (rowClickHandlers[flatColKey]) {
+              rowClickHandlers[flatColKey](e);
+            }
+            if (this.props.tableOptions?.clickCellCallback) {
+              // THIS IS THE CORRECTED LOGIC
+              const filters = {};
+              rowAttrs.forEach((attr, i) => {
+                if (rowKey[i] !== null) filters[attr] = rowKey[i];
+              });
+              colAttrs.forEach((attr, i) => {
+                if (colKey[i] !== null) filters[attr] = colKey[i];
+              });
+
+              this.props.tableOptions.clickCellCallback(
+                e,
+                aggValue,
+                filters,
+                pivotData,
+                !!agg.isSubtotal,
+                false,
+              );
+            }
+          }}
           onContextMenu={e => this.props.onContextMenu(e, colKey, rowKey)}
           style={style}
         >
@@ -756,7 +793,7 @@ export class TableRenderer extends Component {
           role="gridcell"
           key="total"
           className="pvtTotal"
-          onClick={rowTotalCallbacks[flatRowKey]}
+          onClick={rowTotalCallbacks[flatKey(rowKey)]}
           onContextMenu={e => this.props.onContextMenu(e, undefined, rowKey)}
         >
           {agg.format(aggValue)}
@@ -771,12 +808,10 @@ export class TableRenderer extends Component {
       totalCell,
     ];
 
-    return <tr key={`keyRow-${flatRowKey}`}>{rowCells}</tr>;
-  }
+    return <tr key={`keyRow-${flatKey(rowKey)}`}>{rowCells}</tr>;
+}
 
   renderTotalsRow(pivotSettings) {
-    // Render the final totals rows that has the totals for all the columns.
-
     const {
       rowAttrs,
       colAttrs,
@@ -857,13 +892,9 @@ export class TableRenderer extends Component {
   visibleKeys(keys, collapsed, numAttrs, subtotalDisplay) {
     return keys.filter(
       key =>
-        // Is the key hidden by one of its parents?
         !key.some((k, j) => collapsed[flatKey(key.slice(0, j))]) &&
-        // Leaf key.
         (key.length === numAttrs ||
-          // Children hidden. Must show total.
           flatKey(key) in collapsed ||
-          // Don't hide totals.
           !subtotalDisplay.hideOnExpand),
     );
   }
@@ -888,8 +919,6 @@ export class TableRenderer extends Component {
       allowRenderHtml,
     } = this.cachedBasePivotSettings;
 
-    // Need to account for exclusions to compute the effective row
-    // and column keys.
     const visibleRowKeys = this.visibleKeys(
       rowKeys,
       this.state.collapsedRows,

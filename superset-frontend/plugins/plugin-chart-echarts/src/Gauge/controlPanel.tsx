@@ -87,6 +87,18 @@ const config: ControlPanelConfig = {
         ],
         [
           {
+            name: 'is_half',
+            config: {
+              type: 'CheckboxControl',
+              label: t('Half Gauge'),
+              description: t('Make the gauge a half circle'),
+              renderTrigger: true,
+              default: DEFAULT_FORM_DATA.isHalf,
+            },
+          },
+        ],
+        [
+          {
             name: 'start_angle',
             config: {
               type: 'TextControl',
@@ -121,6 +133,22 @@ const config: ControlPanelConfig = {
               min: 10,
               max: 20,
               default: DEFAULT_FORM_DATA.fontSize,
+            },
+          },
+        ],
+        [
+          {
+            name: 'values_font_size',
+            config: {
+              type: 'SliderControl',
+              label: t('Font size Values'),
+              description: t(
+                'Font size for detail and value text elements',
+              ),
+              renderTrigger: true,
+              min: 10,
+              max: 30,
+              default: DEFAULT_FORM_DATA.font_size,
             },
           },
         ],

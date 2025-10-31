@@ -34,10 +34,12 @@ export type EchartsGaugeFormData = QueryFormData & {
   colorScheme?: string;
   groupby: QueryFormColumn[];
   metric?: string;
+  ishalf: boolean;
   rowLimit: number;
   minVal: number | null;
   maxVal: number | null;
   fontSize: number;
+  values_font_size: number;
   numberFormat: string;
   animation: boolean;
   showProgress: boolean;
@@ -58,9 +60,11 @@ export const DEFAULT_FORM_DATA: Partial<EchartsGaugeFormData> = {
   ...DEFAULT_LEGEND_FORM_DATA,
   groupby: [],
   rowLimit: 10,
+  isHalf: false,
   minVal: null,
   maxVal: null,
   fontSize: 15,
+  values_font_size: 16,
   numberFormat: 'SMART_NUMBER',
   animation: true,
   showProgress: true,
