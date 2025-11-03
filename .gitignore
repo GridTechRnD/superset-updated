@@ -64,6 +64,8 @@ superset-websocket/config.json
 *.entry.js
 *.js.map
 node_modules
+**/node_modules/
+supersetDev/*
 npm-debug.log*
 superset/static/assets/*
 !superset/static/assets/.gitkeep
