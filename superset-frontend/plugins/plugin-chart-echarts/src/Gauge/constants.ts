@@ -68,8 +68,8 @@ export const INTERVAL_GAUGE_SERIES_OPTION: GaugeSeriesOption = {
 };
 
 export const OFFSETS = {
-  ticksFromLine: 10,
-  titleFromCenter: 20,
+  ticksFromLine: 5,
+  titleFromCenter: 5,
 };
 
 export const FONT_SIZE_MULTIPLIERS = {

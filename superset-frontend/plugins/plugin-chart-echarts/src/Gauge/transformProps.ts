@@ -92,6 +92,15 @@ const calculateMin = (data: GaugeDataItemOption[]) =>
 const calculateMax = (data: GaugeDataItemOption[]) =>
   2 * Math.max(...data.map(d => d.value as number).concat([0]));
 
+const getVerticalOffset = (index: number, valuesFontSize: number, isHalf: boolean, titleStartPosition: number): number => {
+  // This formula calculates the position based on the pattern:
+  // Starts at -40 for index 1 and increases by 20 each time.
+  const firstTerm = isHalf ? -70 : titleStartPosition;
+  const difference = 20 + valuesFontSize * 0.5;
+  return firstTerm + (index - 1) * difference;
+};
+
+
 export default function transformProps(
   chartProps: EchartsGaugeChartProps,
 ): GaugeChartTransformedProps {
@@ -116,10 +125,15 @@ export default function transformProps(
   const {
     groupby,
     metric,
+    isHalf,
+    titleStartPosition,
     minVal,
     maxVal,
     colorScheme,
     fontSize,
+    showTitle,
+    values_font_size,
+    valuesFontSize,
     numberFormat,
     currencyFormat,
     animation,
@@ -137,6 +151,15 @@ export default function transformProps(
     valueFormatter,
     sliceId,
   }: EchartsGaugeFormData = { ...DEFAULT_GAUGE_FORM_DATA, ...formData };
+
+  const finalStartAngle = isHalf ? 180 : startAngle;
+  const finalEndAngle = isHalf ? 0 : endAngle;
+
+  console.log('values_font_size', values_font_size);
+  console.log('values_font_size', valuesFontSize);
+  console.log('fontSize', fontSize);
+  console.log('formData', formData);
+
   const refs: Refs = {};
   const data = (queriesData[0]?.data || []) as DataRecord[];
   const coltypeMapping = getColtypesMapping(queriesData[0]);
@@ -154,18 +177,29 @@ export default function transformProps(
     valueFormatter.replace('{value}', numberFormatter(value));
   const axisTickLength = FONT_SIZE_MULTIPLIERS.axisTickLength * fontSize;
   const splitLineLength = FONT_SIZE_MULTIPLIERS.splitLineLength * fontSize;
-  const titleOffsetFromTitle =
-    FONT_SIZE_MULTIPLIERS.titleOffsetFromTitle * fontSize;
-  const detailOffsetFromTitle =
-    FONT_SIZE_MULTIPLIERS.detailOffsetFromTitle * fontSize;
+  // const titleOffsetFromTitle =
+  //   FONT_SIZE_MULTIPLIERS.titleOffsetFromTitle * fontSize;
+  // const detailOffsetFromTitle =
+  //   FONT_SIZE_MULTIPLIERS.detailOffsetFromTitle * fontSize;
   const columnsLabelMap = new Map<string, string[]>();
   const metricLabel = getMetricLabel(metric as QueryFormMetric);
-
+  console.log('isHalf'  , isHalf);
   const transformedData: GaugeDataItemOption[] = data.map(
     (data_point, index) => {
-      const name = groupbyLabels
+
+      const titleY = getVerticalOffset(index + 1, values_font_size, isHalf, titleStartPosition);
+    
+    // Position the detail text a fixed amount below the title
+       const detailY = titleY + 10 + valuesFontSize * 0.5;
+
+      const name = showTitle 
+      ? groupbyLabels
         .map(column => `${verboseMap[column] || column}: ${data_point[column]}`)
-        .join(', ');
+        .join(', ')
+      : groupbyLabels
+        .map(column => `${data_point[column]}`)
+        .join(', ')
+ 
       const colorLabel = groupbyLabels.map(col => data_point[col] as string);
       columnsLabelMap.set(
         name,
@@ -178,22 +212,25 @@ export default function transformProps(
           color: colorFn(colorLabel, sliceId),
         },
         title: {
+          
           offsetCenter: [
             '0%',
-            `${index * titleOffsetFromTitle + OFFSETS.titleFromCenter}%`,
+            `${titleY}%`,
+            // `${(index * 1.1) * titleOffsetFromTitle + OFFSETS.titleFromCenter + valuesFontSize }%`,
           ],
-          fontSize,
+          fontSize: valuesFontSize - 2,
         },
         detail: {
           offsetCenter: [
             '0%',
-            `${
-              index * titleOffsetFromTitle +
-              OFFSETS.titleFromCenter +
-              detailOffsetFromTitle
-            }%`,
+            `${detailY}%`,
+            // `${
+            //   index * titleOffsetFromTitle +
+            //   OFFSETS.titleFromCenter +
+            //   detailOffsetFromTitle + valuesFontSize + FONT_SIZE_MULTIPLIERS.detailFontSize 
+            // }%`,
           ],
-          fontSize: FONT_SIZE_MULTIPLIERS.detailFontSize * fontSize,
+          fontSize: FONT_SIZE_MULTIPLIERS.detailFontSize * valuesFontSize,
         },
       };
       if (
@@ -271,7 +308,7 @@ export default function transformProps(
   };
   const axisLabel = {
     distance: -axisLabelDistance,
-    fontSize,
+    fontSize: valuesFontSize - 2,
     formatter: numberFormatter,
     color: gaugeSeriesOptions.axisLabel?.color,
   };
@@ -317,8 +354,8 @@ export default function transformProps(
   const series: GaugeSeriesOption[] = [
     {
       type: 'gauge',
-      startAngle,
-      endAngle,
+      startAngle: finalStartAngle,
+      endAngle: finalEndAngle,
       min,
       max,
       progress,

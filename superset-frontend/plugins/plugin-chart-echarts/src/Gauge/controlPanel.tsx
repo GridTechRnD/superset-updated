@@ -87,6 +87,18 @@ const config: ControlPanelConfig = {
         ],
         [
           {
+            name: 'is_half',
+            config: {
+              type: 'CheckboxControl',
+              label: t('Half Gauge'),
+              description: t('Make the gauge a half circle'),
+              renderTrigger: true,
+              default: DEFAULT_FORM_DATA.isHalf,
+            },
+          },
+        ],
+        [
+          {
             name: 'start_angle',
             config: {
               type: 'TextControl',
@@ -118,9 +130,41 @@ const config: ControlPanelConfig = {
                 'Font size for axis labels, detail value and other text elements',
               ),
               renderTrigger: true,
-              min: 10,
+              min: 4,
               max: 20,
               default: DEFAULT_FORM_DATA.fontSize,
+            },
+          },
+        ],
+        [
+          {
+            name: 'title_start_position',
+            config: {
+              type: 'SliderControl',
+              label: t('Title Start Position'),
+              description: t(
+                'Position of the title text element relative to the center of the gauge',
+              ),
+              renderTrigger: true,
+              min: -90,
+              max: 60,
+              default: DEFAULT_FORM_DATA.titleStartPosition,
+            },
+          },
+        ],
+        [
+          {
+            name: 'values_font_size',
+            config: {
+              type: 'SliderControl',
+              label: t('Font size Values'),
+              description: t(
+                'Font size for detail and value text elements',
+              ),
+              renderTrigger: true,
+              min: 4,
+              max: 30,
+              default: DEFAULT_FORM_DATA.font_size,
             },
           },
         ],
@@ -164,6 +208,18 @@ const config: ControlPanelConfig = {
               description: t('Whether to show the pointer'),
               renderTrigger: true,
               default: DEFAULT_FORM_DATA.showPointer,
+            },
+          },
+        ],
+        [
+          {
+            name: 'show_title',
+            config: {
+              type: 'CheckboxControl',
+              label: t('Show title'),
+              description: t('Whether to show the title'),
+              renderTrigger: true,
+              default: DEFAULT_FORM_DATA.showTitle,
             },
           },
         ],
