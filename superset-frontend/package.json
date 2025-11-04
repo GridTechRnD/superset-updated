@@ -13,7 +13,7 @@
     "nerds",
     "database",
     "flask"
-  ],
+  ], 
   "homepage": "https://superset.apache.org/",
   "bugs": {
     "url": "https://github.com/apache/superset/issues"
