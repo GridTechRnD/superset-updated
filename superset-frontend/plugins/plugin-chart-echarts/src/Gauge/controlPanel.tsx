@@ -85,6 +85,18 @@ const config: ControlPanelConfig = {
             },
           },
         ],
+         [
+          {
+            name: 'has_axis_labels',
+            config: {
+              type: 'CheckboxControl',
+              label: t('Axis Labels'),
+              description: t('Show axis labels on the gauge'),
+              renderTrigger: true,
+              default: DEFAULT_FORM_DATA.hasAxisLabels,
+            },
+          },
+        ],
         [
           {
             name: 'is_half',
@@ -194,7 +206,7 @@ const config: ControlPanelConfig = {
                 'Spacing for detail and value text elements',
               ),
               renderTrigger: true,
-              min: 4,
+              min: 0,
               max: 30,
               default: DEFAULT_FORM_DATA.value_spacing,
             },

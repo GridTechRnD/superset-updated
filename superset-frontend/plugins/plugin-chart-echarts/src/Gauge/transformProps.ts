@@ -97,7 +97,7 @@ const getVerticalOffset = (index: number, valuesFontSizeInside: number, isHalf: 
   // Starts at -40 for index 1 and increases by 20 each time.
   const firstTerm = isHalf ? -70 : titleStartPosition;
   const difference = 20 + (valuesFontSizeInside + valueSpacing);
-  return firstTerm + (index - 1) * difference;
+  return firstTerm + ((index * 1.3) - 1) * difference;
 };
 
 
@@ -135,6 +135,7 @@ export default function transformProps(
     valueSpacing,
     valuesFontSizeOutside,
     valuesFontSizeInside,
+    hasAxisLabels,
     numberFormat,
     currencyFormat,
     animation,
@@ -303,6 +304,7 @@ export default function transformProps(
     },
   };
   const axisLabel = {
+    show: hasAxisLabels,
     distance: -axisLabelDistance,
     fontSize: valuesFontSizeOutside , //axis labels
     formatter: numberFormatter,
