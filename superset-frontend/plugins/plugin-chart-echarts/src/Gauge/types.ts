@@ -35,6 +35,7 @@ export type EchartsGaugeFormData = QueryFormData & {
   groupby: QueryFormColumn[];
   metric?: string;
   ishalf: boolean;
+  titleDetailSpacing?: number;
   titleStartPosition: number;
   showTitle: boolean;
   rowLimit: number;
@@ -64,11 +65,14 @@ export const DEFAULT_FORM_DATA: Partial<EchartsGaugeFormData> = {
   rowLimit: 10,
   isHalf: false,
   titleStartPosition: -40,
+  titleDetailSpacing: 10,
   showTitle: true,
   minVal: null,
   maxVal: null,
   fontSize: 15,
-  values_font_size: 16,
+  valuesFontSizeInside: 16,
+  valuesFontSizeOutside: 16,
+  valueSpacing: 4,
   numberFormat: 'SMART_NUMBER',
   animation: true,
   showProgress: true,

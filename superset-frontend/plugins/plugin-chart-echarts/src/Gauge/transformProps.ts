@@ -92,11 +92,11 @@ const calculateMin = (data: GaugeDataItemOption[]) =>
 const calculateMax = (data: GaugeDataItemOption[]) =>
   2 * Math.max(...data.map(d => d.value as number).concat([0]));
 
-const getVerticalOffset = (index: number, valuesFontSize: number, isHalf: boolean, titleStartPosition: number): number => {
+const getVerticalOffset = (index: number, valuesFontSizeInside: number, isHalf: boolean, titleStartPosition: number, valueSpacing: number): number => {
   // This formula calculates the position based on the pattern:
   // Starts at -40 for index 1 and increases by 20 each time.
   const firstTerm = isHalf ? -70 : titleStartPosition;
-  const difference = 20 + valuesFontSize * 0.5;
+  const difference = 20 + (valuesFontSizeInside + valueSpacing);
   return firstTerm + (index - 1) * difference;
 };
 
@@ -132,8 +132,9 @@ export default function transformProps(
     colorScheme,
     fontSize,
     showTitle,
-    values_font_size,
-    valuesFontSize,
+    valueSpacing,
+    valuesFontSizeOutside,
+    valuesFontSizeInside,
     numberFormat,
     currencyFormat,
     animation,
@@ -155,10 +156,6 @@ export default function transformProps(
   const finalStartAngle = isHalf ? 180 : startAngle;
   const finalEndAngle = isHalf ? 0 : endAngle;
 
-  console.log('values_font_size', values_font_size);
-  console.log('values_font_size', valuesFontSize);
-  console.log('fontSize', fontSize);
-  console.log('formData', formData);
 
   const refs: Refs = {};
   const data = (queriesData[0]?.data || []) as DataRecord[];
@@ -187,10 +184,9 @@ export default function transformProps(
   const transformedData: GaugeDataItemOption[] = data.map(
     (data_point, index) => {
 
-      const titleY = getVerticalOffset(index + 1, values_font_size, isHalf, titleStartPosition);
-    
-    // Position the detail text a fixed amount below the title
-       const detailY = titleY + 10 + valuesFontSize * 0.5;
+      const titleY = getVerticalOffset(index + 1, valuesFontSizeInside, isHalf, titleStartPosition, valueSpacing);
+      // Use titleDetailSpacing for spacing between title and detail
+      const detailY = titleY + 10 + valuesFontSizeInside ;
 
       const name = showTitle 
       ? groupbyLabels
@@ -216,9 +212,9 @@ export default function transformProps(
           offsetCenter: [
             '0%',
             `${titleY}%`,
-            // `${(index * 1.1) * titleOffsetFromTitle + OFFSETS.titleFromCenter + valuesFontSize }%`,
+            // `${(index * 1.1) * titleOffsetFromTitle + OFFSETS.titleFromCenter + valuesFontSizeInside }%`,
           ],
-          fontSize: valuesFontSize - 2,
+          fontSize: valuesFontSizeInside - 2,
         },
         detail: {
           offsetCenter: [
@@ -227,10 +223,10 @@ export default function transformProps(
             // `${
             //   index * titleOffsetFromTitle +
             //   OFFSETS.titleFromCenter +
-            //   detailOffsetFromTitle + valuesFontSize + FONT_SIZE_MULTIPLIERS.detailFontSize 
+            //   detailOffsetFromTitle + valuesFontSizeInside + FONT_SIZE_MULTIPLIERS.detailFontSize 
             // }%`,
           ],
-          fontSize: FONT_SIZE_MULTIPLIERS.detailFontSize * valuesFontSize,
+          fontSize: FONT_SIZE_MULTIPLIERS.detailFontSize * valuesFontSizeInside,
         },
       };
       if (
@@ -308,7 +304,7 @@ export default function transformProps(
   };
   const axisLabel = {
     distance: -axisLabelDistance,
-    fontSize: valuesFontSize - 2,
+    fontSize: valuesFontSizeOutside , //axis labels
     formatter: numberFormatter,
     color: gaugeSeriesOptions.axisLabel?.color,
   };

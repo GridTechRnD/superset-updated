@@ -125,9 +125,9 @@ const config: ControlPanelConfig = {
             name: 'font_size',
             config: {
               type: 'SliderControl',
-              label: t('Font size'),
+              label: t('Gauge Ring Size'),
               description: t(
-                'Font size for axis labels, detail value and other text elements',
+                'Size for the ring gauge.',
               ),
               renderTrigger: true,
               min: 4,
@@ -154,10 +154,10 @@ const config: ControlPanelConfig = {
         ],
         [
           {
-            name: 'values_font_size',
+            name: 'values_font_size_inside',
             config: {
               type: 'SliderControl',
-              label: t('Font size Values'),
+              label: t('Inside Font size Values'),
               description: t(
                 'Font size for detail and value text elements',
               ),
@@ -165,6 +165,38 @@ const config: ControlPanelConfig = {
               min: 4,
               max: 30,
               default: DEFAULT_FORM_DATA.font_size,
+            },
+          },
+        ],
+        [
+          {
+            name: 'values_font_size_outside',
+            config: {
+              type: 'SliderControl',
+              label: t('Outside Font size Values'),
+              description: t(
+                'Font size for outside labels on the gauge',
+              ),
+              renderTrigger: true,
+              min: 4,
+              max: 30,
+              default: DEFAULT_FORM_DATA.font_size,
+            },
+          },
+        ],
+        [
+          {
+            name: 'value_spacing',
+            config: {
+              type: 'SliderControl',
+              label: t('Values Spacing'),
+              description: t(
+                'Spacing for detail and value text elements',
+              ),
+              renderTrigger: true,
+              min: 4,
+              max: 30,
+              default: DEFAULT_FORM_DATA.value_spacing,
             },
           },
         ],
