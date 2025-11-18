@@ -36,6 +36,10 @@ import {
   useTheme,
 } from '@superset-ui/core';
 import { aggregatorTemplates, PivotTable, sortAs } from './react-pivottable';
+
+// IMPORT THE CSS WE CREATED
+import { pivotTableCss } from './react-pivottable/Styles';
+
 import {
   FilterType,
   MetricsLayoutEnum,
@@ -44,31 +48,58 @@ import {
   SelectedFiltersType,
 } from './types';
 
-// In PivotTableChart.tsx
-
+// APPLY BOTH BASE STYLES AND YOUR CUSTOM OVERRIDES
 const Styles = styled.div<PivotTableStylesProps>`
+  /* 1. Inject the standard table styles */
+  ${({ theme }) => pivotTableCss(theme)}
+
+  /* 2. Add your custom sizing and interactive styles */
   ${({ height, width, margin, theme }) => `
-    margin: ${margin}px;
-    height: ${height - margin * 2}px;
-    width: ${
-      typeof width === 'string' ? parseInt(width, 10) : width - margin * 2
-    }px;
+      margin: ${margin}px;
+      height: ${height - margin * 2}px;
+      width: ${
+        typeof width === 'string' ? parseInt(width, 10) : width - margin * 2
+      }px;
 
-    /* START: ADD THESE STYLES */
-    .pvtVal.hoverable {
-      cursor: pointer;
-      &:hover {
-        background-color: ${theme.colors.grayscale.light2};
+      /* Interactive styles for selection */
+      .pvtVal.hoverable {
+        cursor: pointer;
+        &:hover {
+          background-color: ${theme.colors.grayscale.light2};
+        }
       }
-    }
 
-    .pvtVal.active {
-      background-color: ${theme.colors.grayscale.light1};
-      font-weight: ${theme.typography.weights.bold};
-    }
-    /* END: ADD THESE STYLES */
-  `}
+      .pvtVal.active {
+        background-color: ${theme.colors.grayscale.light1};
+        font-weight: ${theme.typography.weights.bold};
+      }
+ `}
 `;
+
+
+// const Styles = styled.div<PivotTableStylesProps>`
+//   ${({ height, width, margin, theme }) => `
+//     margin: ${margin}px;
+//     height: ${height - margin * 2}px;
+//     width: ${
+//       typeof width === 'string' ? parseInt(width, 10) : width - margin * 2
+//     }px;
+
+//     /* START: ADD THESE STYLES */
+//     .pvtVal.hoverable {
+//       cursor: pointer;
+//       &:hover {
+//         background-color: ${theme.colors.grayscale.light2};
+//       }
+//     }
+
+//     .pvtVal.active {
+//       background-color: ${theme.colors.grayscale.light1};
+//       font-weight: ${theme.typography.weights.bold};
+//     }
+//     /* END: ADD THESE STYLES */
+//   `}
+// `;
 
 const PivotTableWrapper = styled.div`
   height: 100%;
